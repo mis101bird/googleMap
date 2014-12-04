@@ -59,14 +59,19 @@ function initialize() {
     if (places.length == 0) {
       return;
     }
+    var bounds = new google.maps.LatLngBounds();
+
     var marker = new google.maps.Marker({
-    position: places,
+    position: places[0].geometry.location,
     map: map
     });
     markers.push(marker);
-    console.log("input searchbox to have "+places);
+    console.log("input searchbox to have "+ places[0].geometry.location);
     setAllMap(null);
     setAllMap(map);
+
+    bounds.extend(places[0].geometry.location); //設定範圍
+    map.fitBounds(bounds);//轉到當下範圍
 });
 
   google.maps.event.addListener(map, 'click', function(event) {
