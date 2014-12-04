@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>Travel modes in directions</title>
+    <style>
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+      #panel {
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        margin-left: -180px;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+      }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+    <script>
+var directionsDisplay;
+var directionsService = new google.maps.DirectionsService();
+var map;
+
+var haight = new google.maps.LatLng(37.7699298, -122.4469157); //start
+var oceanBeach = new google.maps.LatLng(37.7683909618184, -122.51089453697205); //end
+
+function initialize() {
+  directionsDisplay = new google.maps.DirectionsRenderer();
+  var mapOptions = {
+    zoom: 14,
+    center: haight
+  }
+  map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+  directionsDisplay.setMap(map); //設定於MAP
+  calcRoute(oceanBeach, haight);
+   var marker = new google.maps.Marker({
+    position: oceanBeach,
+    map: map
+  });
+  placeDetail(marker);
+}
+
+function calcRoute(start, end) {
+  var selectedMode = document.getElementById('mode').value;//取得交通方式
+  var request = {
+      origin: start ,//起點設定
+      destination: end, //目的設定
+      travelMode: google.maps.TravelMode[selectedMode] /*設定交通方式*/
+  };
+  directionsService.route(request, function(response, status) {
+    if (status == google.maps.DirectionsStatus.OK) {
+      directionsDisplay.setDirections(response);
+    }
+  });
+}
+function placeDetail(place){
+    
+    console.log( "B is 網址:" + place.url + ", 地點:" + place.name +", 地址:"+place.vicinity);
+   
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+//down is examples
+    </script> 
+  </head>
+  <body>
+    <div id="panel">
+    <b>Mode of Travel: </b>
+    <select id="mode" onchange="calcRoute();">
+      <option value="DRIVING">Driving</option>
+      <option value="WALKING">Walking</option>
+      <option value="BICYCLING">Bicycling</option>
+      <option value="TRANSIT">Transit</option>
+    </select>
+    </div>
+    <div id="map-canvas"></div>
+  </body>
+</html>
