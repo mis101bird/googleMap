@@ -97,8 +97,8 @@ function showTime(result){
 
     var myroute = result.routes[0];
     for (var i = 0; i < myroute.legs.length; i++) {
-
-      time +=myroute.legs[i].duration.text;
+      console.log("come is "+myroute.legs[i].duration.text); //text有經過時/分轉換
+      time +=myroute.legs[i].duration.value; //time 秒為單位
      }
     console.log("time is "+time);
 }
