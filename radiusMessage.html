@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>Travel modes in directions</title>
+    <style>
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+      #panel {
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        margin-left: -180px;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+      }
+    </style>
+
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?libraries=places&sensor=true_or_false"></script>
+    <script>
+
+var map;
+var infowindow;
+var server;
+
+function initialize() {
+    var pyrmont = new google.maps.LatLng(-33.8665433, 151.1956316);
+
+    map = new google.maps.Map(document.getElementById('map-canvas'), {
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      center: pyrmont,
+      zoom: 15
+    });
+
+    var request = {
+      location: pyrmont, //設定搜尋中心
+      radius: 5000,     //搜尋半徑(m為單位~最多50,000 公尺)
+      types: ['bar']    //搜尋類型
+    };
+    infowindow = new google.maps.InfoWindow();
+    service = new google.maps.places.PlacesService(map);
+    service.search(request, callback);
+  
+
+  function callback(results, status) {
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+      for (var i = 0; i < results.length; i++) {
+        createMarker(results[i]);
+      }
+    }
+  }
+}
+  function createMarker(place) {
+    var placeLoc = place.geometry.location;
+    var marker = new google.maps.Marker({
+      map: map,
+      position: place.geometry.location
+    });
+
+    var request = { reference: place.reference };
+    service.getDetails(request, function(details, status) {
+      google.maps.event.addListener(marker, 'click', function() {
+        var name;
+        var address;
+        var website;
+        var rating;
+        var phone;
+        console.log(details);
+        if(details==null){
+          infowindow.setContent("<b>無詳細</b>");
+          infowindow.open(map, this);
+          return;
+        }
+        if(details.hasOwnProperty('name')){
+          name=details.name;
+        }
+        if(details.vicinity!=null){
+          address=details.vicinity; 
+        }
+        if(details.website!=null){
+          website=details.website;
+        }
+        if(details.rating!=null){
+          rating="The review: "+details.rating+"/user rate total: "+details.user_ratings_total;
+        }
+        if(details.formatted_phone_number!=null){
+          phone=details.formatted_phone_number;
+        }
+        infowindow.setContent('<b><a href="' + website +'">' + name + "</a></b></br>" + address +"<br />" + rating + "<br />" + phone);
+        infowindow.open(map, this);
+      });
+    });
+  }
+
+google.maps.event.addDomListener(window, 'load', initialize);
+//down is examples
+    </script> 
+  </head>
+  <body>
+    <div id="map-canvas"></div>
+  </body>
+</html>
