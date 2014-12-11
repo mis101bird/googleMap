@@ -72,6 +72,7 @@ function calcRoute(start, end) { //for change marker
   directionsService.route(request, function(response, status) {
     if (status == google.maps.DirectionsStatus.OK) {
       directionsDisplay.setDirections(response);
+      console.log(response);
       console.log(directionsDisplay);
       showTime(directionsDisplay.directions); //log時間
     }
