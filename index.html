@@ -19,7 +19,14 @@
         outline: none;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
       }
+.choosebox {
+     
+  position: absolute;
+  width:300px;
+  right: 5px;
+  bottom: 30px;
 
+      }
       #panel {
         position: absolute;
         top: 5px;
@@ -40,7 +47,7 @@ var searchBox ;
 function initialize() {
   var taiwan = new google.maps.LatLng(23.583234,120.5825975);
   var mapOptions = {
-    zoom: 12,
+    zoom: 10,
     center: taiwan,
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
@@ -70,7 +77,7 @@ function initialize() {
     console.log("input searchbox to have "+ places[0].geometry.location);
     setAllMap(null);
     setAllMap(map);
-
+    
     bounds.extend(places[0].geometry.location); //≥]©wΩd≥Ú
     map.fitBounds(bounds);//¬‡®Ï∑Ì§UΩd≥Ú
 });
@@ -87,6 +94,7 @@ function setAllMap(map) {
 }
   }else{
  markers[markers.length-1].setMap(map);//º–≥Ã∑s™∫marker
+ document.getElementById('changebutton').innerHTML="<button type='button' onclick='' >Ëº∏ÂÖ•</button>";
 }
 }
   
@@ -101,6 +109,7 @@ function addMarker(location) {
   console.log("click to have "+location);
   setAllMap(null);
   setAllMap(map);
+
 }
 
 
@@ -115,8 +124,18 @@ google.maps.event.addDomListener(window, 'load', initialize);
   </head>
   <body>
     
-    <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+    <input id="pac-input" class="controls" type="text" placeholder="Ë´ãÊêúË©¢ÊÇ®ÁöÑÊâÄÂú®‰ΩçÁΩÆ">
     <div id="map-canvas"></div>
-    
+    <div class="choosebox">
+    <input id="mytime" type="text" placeholder="Âú®ÈôÑËøëÂÅúÁïô?ÂàÜÈêò">
+    <span id="changebutton"><button type="button" onclick="" disabled >Ëº∏ÂÖ•</button></span>
+    <select id="mode" onchange="">
+      <option value="DRIVING" selected="selected">ÈñãËªä</option>
+      <option value="WALKING">Ëµ∞Ë∑Ø</option>
+      <option value="BICYCLING">ËÖ≥Ë∏èËªä</option>
+      <option value="TRANSIT">ÂÖ¨Ëªä</option>
+    </select>
+
+    </div>
   </body>
 </html>

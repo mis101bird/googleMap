@@ -51,7 +51,9 @@ function initialize() {
   }
   map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
   directionsDisplay.setMap(map); //設定於MAP
+
   calcRoute(oceanBeach, haight);
+
    var marker = new google.maps.Marker({
     position: oceanBeach,
     map: map
