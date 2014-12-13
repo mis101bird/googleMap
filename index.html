@@ -38,13 +38,18 @@
         border: 1px solid #999;
       }
     </style>
-    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&sensor=true_or_false"></script>
     <script>
 
 var map;
+var infowindow;
+var service ;
 var markers=[];
 var searchBox ;
+var locations;
+
 function initialize() {
+  infowindow = new google.maps.InfoWindow();
   var taiwan = new google.maps.LatLng(23.583234,120.5825975);
   var mapOptions = {
     zoom: 10,
@@ -53,7 +58,7 @@ function initialize() {
   };
   map = new google.maps.Map(document.getElementById('map-canvas'),
       mapOptions);
-
+  service = new google.maps.places.PlacesService(map);
   //Searchbix©MUIß@≥sµ≤
   var input = (document.getElementById('pac-input'));
   map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
@@ -83,7 +88,13 @@ function initialize() {
 });
 
   google.maps.event.addListener(map, 'click', function(event) {
-    addMarker(event.latLng);
+    
+	var myLatLng = event.latLng;
+	addMarker(myLatLng);
+    var lat = myLatLng.lat();
+    var lng = myLatLng.lng();
+	locations=new google.maps.LatLng(lat, lng);
+	
   });
 
 }
@@ -94,10 +105,37 @@ function setAllMap(map) {
 }
   }else{
  markers[markers.length-1].setMap(map);//º–≥Ã∑s™∫marker
- document.getElementById('changebutton').innerHTML="<button type='button' onclick='' >Ëº∏ÂÖ•</button>";
+ document.getElementById('changebutton').innerHTML="<button type='button' onclick='findRadius()' >Ëº∏ÂÖ•</button>";
 }
 }
-  
+
+function findRadius(){
+var mode=document.getElementById('mode').value;
+var second=(document.getElementById('mytime').value)*60;
+var distance=0;
+if(mode=="DRIVING"){
+    distance=Math.round(second*12.5);
+}else if(mode=="WALKING"){
+    distance=Math.round(second*0.5);
+}else if(mode=="BICYCLING"){
+    distance=Math.round(second*5.55);
+}else{
+    distance=Math.round(second*3.815);
+}
+    var request = {
+      location: locations, //≥]©w∑j¥M§§§ﬂ
+      radius: distance ,     //∑j¥M•bÆ|(m¨∞≥Ê¶Ï~≥Ã¶h50,000 §Ω§ÿ)
+	  
+      types: ['casino','amusement_park','aquarium','art_gallery','hindu_temple','mosque','museum','zoo','university']    //∑j¥M√˛´¨
+    };
+    service.search(request, callback);
+	function callback(results, status) {
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+      console.log(results);
+	  //©I•søzøÔæπfunction!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    }
+  }
+}
 
 // Add a marker to the map and push to the array.
 function addMarker(location) {
@@ -111,6 +149,47 @@ function addMarker(location) {
   setAllMap(map);
 
 }
+  function setDetail(place) {
+    var placeLoc = place.geometry.location;
+    var marker = new google.maps.Marker({
+      map: map,
+      position: place.geometry.location
+    });
+
+    var request = { reference: place.reference };
+    service.getDetails(request, function(details, status) {
+      google.maps.event.addListener(marker, 'click', function() {
+        var name;
+        var address;
+        var website;
+        var rating;
+        var phone;
+        console.log(details);
+        if(details==null){
+          infowindow.setContent("<b>µL∏‘≤”</b>");
+          infowindow.open(map, this);
+          return;
+        }
+        if(details.hasOwnProperty('name')){
+          name=details.name;
+        }
+        if(details.vicinity!=null){
+          address=details.vicinity; 
+        }
+        if(details.website!=null){
+          website=details.website;
+        }
+        if(details.rating!=null){
+          rating="The review: "+details.rating+"/user rate total: "+details.user_ratings_total;
+        }
+        if(details.formatted_phone_number!=null){
+          phone=details.formatted_phone_number;
+        }
+        infowindow.setContent('<b><a href="' + website +'">' + name + "</a></b></br>" + address +"<br />" + rating + "<br />" + phone);
+        infowindow.open(map, this);
+      });
+    });
+  }
 
 
 google.maps.event.addDomListener(window, 'load', initialize);
@@ -129,7 +208,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
     <div class="choosebox">
     <input id="mytime" type="text" placeholder="Âú®ÈôÑËøëÂÅúÁïô?ÂàÜÈêò">
     <span id="changebutton"><button type="button" onclick="" disabled >Ëº∏ÂÖ•</button></span>
-    <select id="mode" onchange="">
+    <select id="mode" onchange="findRadius()">
       <option value="DRIVING" selected="selected">ÈñãËªä</option>
       <option value="WALKING">Ëµ∞Ë∑Ø</option>
       <option value="BICYCLING">ËÖ≥Ë∏èËªä</option>
