@@ -37,16 +37,23 @@
         padding: 5px;
         border: 1px solid #999;
       }
+	  #matrix{
+	  
+	  }
+
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&sensor=true_or_false"></script>
     <script>
 
-var map;
+var map,dms;
 var infowindow;
 var service ;
 var markers=[];
+var filterR=[];
 var searchBox ;
 var locations;
+var mode;
+var second;
 
 function initialize() {
   infowindow = new google.maps.InfoWindow();
@@ -62,9 +69,9 @@ function initialize() {
   //Searchbix©MUIß@≥sµ≤
   var input = (document.getElementById('pac-input'));
   map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-  searchBox = new google.maps.places.SearchBox((input));
-
-  //searchbox±o®Ï™∫¶Ï∏m
+  searchBox = new google.maps.places.SearchBox((input));//searchbox±o®Ï™∫¶Ï∏m
+  dms = new google.maps.DistanceMatrixService();
+  
   google.maps.event.addListener(searchBox, 'places_changed', function() {
     
     var places = searchBox.getPlaces();
@@ -79,7 +86,8 @@ function initialize() {
     map: map
     });
     markers.push(marker);
-    console.log("input searchbox to have "+ places[0].geometry.location);
+    console.log(marker);
+    locations=places[0].geometry.location;
     setAllMap(null);
     setAllMap(map);
     
@@ -91,9 +99,8 @@ function initialize() {
     
 	var myLatLng = event.latLng;
 	addMarker(myLatLng);
-    var lat = myLatLng.lat();
-    var lng = myLatLng.lng();
-	locations=new google.maps.LatLng(lat, lng);
+	
+	locations=myLatLng;
 	
   });
 
@@ -110,8 +117,8 @@ function setAllMap(map) {
 }
 
 function findRadius(){
-var mode=document.getElementById('mode').value;
-var second=(document.getElementById('mytime').value)*60;
+mode=document.getElementById('mode').value;
+second=(document.getElementById('mytime').value)*60;
 var distance=0;
 if(mode=="DRIVING"){
     distance=Math.round(second*12.5);
@@ -131,12 +138,80 @@ if(mode=="DRIVING"){
     service.search(request, callback);
 	function callback(results, status) {
     if (status == google.maps.places.PlacesServiceStatus.OK) {
-      console.log(results);
-	  //©I•søzøÔæπfunction!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	  console.log(results);
+	  var names=[];
+	  for(var i=0;i<results.length;i++){
+	     names.push(results[i].name);
+	  }
+	  
+	  findDistance(names,results);
     }
   }
 }
+  function findDistance(destinations,details) {
+      var query = {
+    origins: [locations],
+    destinations: destinations,
+    travelMode: mode,
+    unitSystem: google.maps.UnitSystem.IMPERIAL
+    };
+    dms.getDistanceMatrix(query, function(response, status) {
+	    var trans=[];
+        if (status == "OK") {
+		  for(var i=0;i<details.length;i++){
+		     var ans={
+			            "rows":response.rows[0].elements[i],
+						"detail":details[i]
+			         };
+			 
+		     trans.push(ans);
+		  }
+          filterResult(trans);
+        }
+      }
+    );
+  }
+  function filterResult(trans) {
+  console.log(trans);
+   trans.sort( function(a, b){ return (a.rows.duration.value)-(b.rows.duration.value); } );
+	
+	var haveT=second/60;
+    var pivotIndex=Math.round(((trans.length)/2)-1);
+    console.log(pivotIndex);
+    console.log((trans[pivotIndex].rows.duration.value)/60);
+    var nowtime=(trans[pivotIndex].rows.duration.value)/60;
+    var finish=false;
+    while(!finish){
+       var pretime=trans[pivotIndex-1].rows.duration.value/60;
+       var aftime=trans[pivotIndex+1].rows.duration.value/60;
+       console.log("pretime:"+pretime+" aftime:"+aftime+" nowtime: "+nowtime);
+       if(absDis(nowtime , haveT, 40)>absDis(pretime , haveT, 40) ){
+          nowtime=pretime;
+          pivotIndex=pivotIndex-1;
+      
+       }else if(absDis(nowtime , haveT, 40)>absDis(aftime , haveT, 40)){ //Ød40§¿~•u¶≥ haveT §¿ƒ¡
+          nowtime=aftime;
+          pivotIndex=pivotIndex+1;
 
+       }else
+       {finish=true;}
+    }
+    console.log("get pivot array["+pivotIndex+"],nowtime: "+nowtime);
+    for(var i=0;i<=pivotIndex;i++)
+    {
+	  findDetail(trans[i].detail);
+	}
+    
+  }
+  function absDis(rowTime, haveTime, minLeaveTime){
+
+     if(rowTime > haveTime){
+        return 1000000000;
+     }else{
+     console.log("absDis:"+Math.abs(Math.abs(rowTime-haveTime)-minLeaveTime));
+     return Math.abs(Math.abs(rowTime-haveTime)-minLeaveTime);
+     }
+  }
 // Add a marker to the map and push to the array.
 function addMarker(location) {
   var marker = new google.maps.Marker({
@@ -149,27 +224,17 @@ function addMarker(location) {
   setAllMap(map);
 
 }
-  function setDetail(place) {
-    var placeLoc = place.geometry.location;
-    var marker = new google.maps.Marker({
-      map: map,
-      position: place.geometry.location
-    });
-
-    var request = { reference: place.reference };
+  function findDetail(place) {
+    var request = { "reference": place.reference };
     service.getDetails(request, function(details, status) {
-      google.maps.event.addListener(marker, 'click', function() {
+        if(details!=null){
+          
         var name;
         var address;
         var website;
         var rating;
         var phone;
-        console.log(details);
-        if(details==null){
-          infowindow.setContent("<b>µL∏‘≤”</b>");
-          infowindow.open(map, this);
-          return;
-        }
+
         if(details.hasOwnProperty('name')){
           name=details.name;
         }
@@ -185,9 +250,24 @@ function addMarker(location) {
         if(details.formatted_phone_number!=null){
           phone=details.formatted_phone_number;
         }
-        infowindow.setContent('<b><a href="' + website +'">' + name + "</a></b></br>" + address +"<br />" + rating + "<br />" + phone);
-        infowindow.open(map, this);
-      });
+      var fin={ "place": place,          
+	            "name": name, 
+				"address": address, 
+				"website": website, 
+				"rating": rating, 
+				"phone": phone
+			  };
+	  filterR.push(fin);
+	   if(filterR.length==5){
+	     filterR.sort(function(a, b){ return b.place.rating-a.place.rating; });
+		 for(var j=0;j<5;j++){
+		   console.log(filterR[j]);
+		   //º–µ˘marker(ØSÆÌ≥]≠pπœÆ◊)®Ï¶aπœ§W
+		 }
+		 
+	   }
+	  
+      }
     });
   }
 
@@ -214,7 +294,9 @@ google.maps.event.addDomListener(window, 'load', initialize);
       <option value="BICYCLING">ËÖ≥Ë∏èËªä</option>
       <option value="TRANSIT">ÂÖ¨Ëªä</option>
     </select>
-
+    <div id="panel">
+	  <table id="matrix"></table>
+	</div>
     </div>
   </body>
 </html>
