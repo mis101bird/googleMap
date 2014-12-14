@@ -46,9 +46,11 @@
     <script>
 
 var map,dms;
+var Filterbreak=0;
 var infowindow;
 var service ;
 var markers=[];
+var endmarks=[];
 var filterR=[];
 var searchBox ;
 var locations;
@@ -199,7 +201,8 @@ if(mode=="DRIVING"){
     console.log("get pivot array["+pivotIndex+"],nowtime: "+nowtime);
     for(var i=0;i<=pivotIndex;i++)
     {
-	  findDetail(trans[i].detail);
+	  findDetail(trans[i].detail,pivotIndex);
+	  
 	}
     
   }
@@ -224,7 +227,7 @@ function addMarker(location) {
   setAllMap(map);
 
 }
-  function findDetail(place) {
+  function findDetail(place,pivot) {
     var request = { "reference": place.reference };
     service.getDetails(request, function(details, status) {
         if(details!=null){
@@ -257,20 +260,46 @@ function addMarker(location) {
 				"rating": rating, 
 				"phone": phone
 			  };
+	  
 	  filterR.push(fin);
-	   if(filterR.length==5){
+	  }
+	  Filterbreak++;
+
+	   if(Filterbreak==pivot+1){
+	     Filterbreak=0;
 	     filterR.sort(function(a, b){ return b.place.rating-a.place.rating; });
+		 
 		 for(var j=0;j<5;j++){
-		   console.log(filterR[j]);
-		   //¼Ðµùmarker(¯S®í³]­p¹Ï®×)¨ì¦a¹Ï¤W
+		       //¼Ðµùmarker(¯S®í³]­p¹Ï®×)¨ì¦a¹Ï¤W
+		      showMarker(filterR[j]);
+			  
+               }
+		         
+		   
 		 }
 		 
-	   }
+	   
 	  
-      }
+      
     });
   }
+  function showMarker(places) {
+    
+    var placeLoc = places.place.geometry.location;
+    var marker = new google.maps.Marker({
+      map: map,
+      position: places.place.geometry.location,
+	  icon:'map.png'
+    });
 
+
+      google.maps.event.addListener(marker, 'click', function() {
+
+        infowindow.setContent('<b><a href="' + places.website +'">' + places.name + "</a></b></br>" + places.address +"<br />" + places.rating + "<br />" + places.phone);
+        infowindow.open(map, this);
+      
+    });
+  }
 
 google.maps.event.addDomListener(window, 'load', initialize);
 
@@ -295,7 +324,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
       <option value="TRANSIT">å…¬è»Š</option>
     </select>
     <div id="panel">
-	  <table id="matrix"></table>
+	
 	</div>
     </div>
   </body>

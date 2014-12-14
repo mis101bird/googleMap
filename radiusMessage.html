@@ -50,9 +50,9 @@ function initialize() {
 
   function callback(results, status) {
     if (status == google.maps.places.PlacesServiceStatus.OK) {
-      
-        createMarker(results);
-      
+      for (var i = 0; i < results.length; i++) {
+        createMarker(results[i]);
+      }
     }
   }
 }
@@ -65,6 +65,7 @@ function initialize() {
 
     var request = { reference: place.reference };
     service.getDetails(request, function(details, status) {
+	
       google.maps.event.addListener(marker, 'click', function() {
         var name;
         var address;
