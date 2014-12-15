@@ -37,9 +37,13 @@
         padding: 5px;
         border: 1px solid #999;
       }
-	  #matrix{
-	  
-	  }
+        #directions-panel {
+        height: 100%;
+        float: right;
+        width: 390px;
+        overflow: auto;
+      }
+
 
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&sensor=true_or_false"></script>
@@ -56,8 +60,11 @@ var searchBox ;
 var locations;
 var mode;
 var second;
+var directionsDisplay;
+var directionsService = new google.maps.DirectionsService();
 
 function initialize() {
+  directionsDisplay = new google.maps.DirectionsRenderer();
   infowindow = new google.maps.InfoWindow();
   var taiwan = new google.maps.LatLng(23.583234,120.5825975);
   var mapOptions = {
@@ -69,6 +76,9 @@ function initialize() {
       mapOptions);
   service = new google.maps.places.PlacesService(map);
   //Searchbix©MUIß@≥sµ≤
+  directionsDisplay.setMap(map);
+  directionsDisplay.setPanel(document.getElementById('directions-panel'));
+  
   var input = (document.getElementById('pac-input'));
   map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
   searchBox = new google.maps.places.SearchBox((input));//searchbox±o®Ï™∫¶Ï∏m
@@ -117,7 +127,22 @@ function setAllMap(map) {
  document.getElementById('changebutton').innerHTML="<button type='button' onclick='findRadius()' >Ëº∏ÂÖ•</button>";
 }
 }
+function showRoute(end) { //show route details on board
 
+  var request = {
+      origin: locations ,//∞_¬I≥]©w
+      destination: end, //•ÿ™∫≥]©w
+      travelMode: mode /*≥]©w•Ê≥q§Ë¶°*/
+  };
+
+  directionsService.route(request, function(response, status) {
+    if (status == google.maps.DirectionsStatus.OK) {
+      directionsDisplay.setDirections(response);
+      console.log(directionsDisplay);
+
+    }
+  });
+}
 function findRadius(){
 mode=document.getElementById('mode').value;
 second=(document.getElementById('mytime').value)*60;
@@ -201,7 +226,7 @@ if(mode=="DRIVING"){
     console.log("get pivot array["+pivotIndex+"],nowtime: "+nowtime);
     for(var i=0;i<=pivotIndex;i++)
     {
-	  findDetail(trans[i].detail,pivotIndex);
+	  findDetail(trans[i],pivotIndex);
 	  
 	}
     
@@ -228,7 +253,7 @@ function addMarker(location) {
 
 }
   function findDetail(place,pivot) {
-    var request = { "reference": place.reference };
+    var request = { "reference": place.detail.reference };
     service.getDetails(request, function(details, status) {
         if(details!=null){
           
@@ -253,12 +278,13 @@ function addMarker(location) {
         if(details.formatted_phone_number!=null){
           phone=details.formatted_phone_number;
         }
-      var fin={ "place": place,          
+      var fin={ "place": place.detail,          
 	            "name": name, 
 				"address": address, 
 				"website": website, 
 				"rating": rating, 
-				"phone": phone
+				"phone": phone,
+				"time":place.rows.duration.text
 			  };
 	  
 	  filterR.push(fin);
@@ -270,7 +296,7 @@ function addMarker(location) {
 	     filterR.sort(function(a, b){ return b.place.rating-a.place.rating; });
 		 
 		 for(var j=0;j<5;j++){
-		       //º–µ˘marker(ØSÆÌ≥]≠pπœÆ◊)®Ï¶aπœ§W
+		       //º–µ˘marker(ØSÆÌ≥]≠pπœÆ◊)®Ï¶aπœ
 		      showMarker(filterR[j]);
 			  
                }
@@ -295,9 +321,9 @@ function addMarker(location) {
 
       google.maps.event.addListener(marker, 'click', function() {
 
-        infowindow.setContent('<b><a href="' + places.website +'">' + places.name + "</a></b></br>" + places.address +"<br />" + places.rating + "<br />" + places.phone);
+        infowindow.setContent('<b><a href="' + places.website +'">' + places.name + "</a></b></br>you have to spend: "+ places.time + "</br>"+places.address +"<br />" + places.rating + "<br />" + places.phone);
         infowindow.open(map, this);
-      
+        showRoute(places.place.geometry.location);
     });
   }
 
@@ -313,7 +339,8 @@ google.maps.event.addDomListener(window, 'load', initialize);
   <body>
     
     <input id="pac-input" class="controls" type="text" placeholder="Ë´ãÊêúË©¢ÊÇ®ÁöÑÊâÄÂú®‰ΩçÁΩÆ">
-    <div id="map-canvas"></div>
+    <div id="directions-panel"></div>
+	<div id="map-canvas"></div>
     <div class="choosebox">
     <input id="mytime" type="text" placeholder="Âú®ÈôÑËøëÂÅúÁïô?ÂàÜÈêò">
     <span id="changebutton"><button type="button" onclick="" disabled >Ëº∏ÂÖ•</button></span>
@@ -323,9 +350,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
       <option value="BICYCLING">ËÖ≥Ë∏èËªä</option>
       <option value="TRANSIT">ÂÖ¨Ëªä</option>
     </select>
-    <div id="panel">
-	
-	</div>
     </div>
   </body>
 </html>
