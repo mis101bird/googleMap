@@ -54,7 +54,6 @@ var Filterbreak=0;
 var infowindow;
 var service ;
 var markers=[];
-var endmarks=[];
 var filterR=[];
 var searchBox ;
 var locations;
@@ -144,8 +143,12 @@ function showRoute(end) { //show route details on board
   });
 }
 function findRadius(){
+
+filterR=[];
 mode=document.getElementById('mode').value;
+
 second=(document.getElementById('mytime').value)*60;
+
 var distance=0;
 if(mode=="DRIVING"){
     distance=Math.round(second*12.5);
@@ -310,8 +313,7 @@ function addMarker(location) {
     });
   }
   function showMarker(places) {
-    
-    var placeLoc = places.place.geometry.location;
+   
     var marker = new google.maps.Marker({
       map: map,
       position: places.place.geometry.location,
@@ -347,7 +349,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
     <select id="mode" onchange="findRadius()">
       <option value="DRIVING" selected="selected">開車</option>
       <option value="WALKING">走路</option>
-      <option value="BICYCLING">腳踏車</option>
       <option value="TRANSIT">公車</option>
     </select>
     </div>
