@@ -128,12 +128,12 @@ function setAllMap(map) {
 }
 function showRoute(end) { //show route details on board
 
-  var request = {
+ var request = {
       origin: locations ,//°_ÂI³]©w
       destination: end, //¥Øªº³]©w
       travelMode: mode /*³]©w¥æ³q¤è¦¡*/
   };
-
+  
   directionsService.route(request, function(response, status) {
     if (status == google.maps.DirectionsStatus.OK) {
       directionsDisplay.setDirections(response);
@@ -146,7 +146,6 @@ function findRadius(){
 
 filterR=[];
 mode=document.getElementById('mode').value;
-
 second=(document.getElementById('mytime').value)*60;
 
 var distance=0;
@@ -163,7 +162,7 @@ if(mode=="DRIVING"){
       location: locations, //³]©w·j´M¤¤¤ß
       radius: distance ,     //·j´M¥b®|(m¬°³æ¦ì~³Ì¦h50,000 ¤½¤Ø)
 	  
-      types: ['casino','amusement_park','aquarium','art_gallery','hindu_temple','mosque','museum','zoo','university']    //·j´MÃþ«¬
+      types: ['casino','amusement_park','aquarium','art_gallery','hindu_temple','mosque','museum','zoo','university','cafe']    //·j´MÃþ«¬
     };
     service.search(request, callback);
 	function callback(results, status) {
@@ -203,8 +202,29 @@ if(mode=="DRIVING"){
   }
   function filterResult(trans) {
   console.log(trans);
-   trans.sort( function(a, b){ return (a.rows.duration.value)-(b.rows.duration.value); } );
-	
+   
+   trans.sort( function(a,b){ 
+                var first=0;
+                var second=0;
+                var result=-1;
+                if(a.rows.hasOwnProperty("duration")){
+                 first=a.rows.duration.value;
+                }
+                if(b.rows.hasOwnProperty("duration")){
+                 second=b.rows.duration.value;
+                }
+                
+              return (first-second); } );
+    var index=0;
+    for(var i=0;i<trans.length;i++){
+     if(trans[i].rows.hasOwnProperty("duration")){
+      break;
+     }
+     index++;
+    }
+     console.log(index);
+    trans = trans.splice(index,(trans.length-index));
+	console.log(trans);
 	var haveT=second/60;
     var pivotIndex=Math.round(((trans.length)/2)-1);
     console.log(pivotIndex);
@@ -212,6 +232,9 @@ if(mode=="DRIVING"){
     var nowtime=(trans[pivotIndex].rows.duration.value)/60;
     var finish=false;
     while(!finish){
+       if(pivotIndex==0 || pivotIndex==(trans.length-1)){
+        break;
+       }
        var pretime=trans[pivotIndex-1].rows.duration.value/60;
        var aftime=trans[pivotIndex+1].rows.duration.value/60;
        console.log("pretime:"+pretime+" aftime:"+aftime+" nowtime: "+nowtime);
@@ -230,7 +253,7 @@ if(mode=="DRIVING"){
     for(var i=0;i<=pivotIndex;i++)
     {
 	  findDetail(trans[i],pivotIndex);
-	  
+	  console.log(trans[i]);
 	}
     
   }
@@ -297,13 +320,17 @@ function addMarker(location) {
 	   if(Filterbreak==pivot+1){
 	     Filterbreak=0;
 	     filterR.sort(function(a, b){ return b.place.rating-a.place.rating; });
-		 
+		 if(filterR.length>4){
 		 for(var j=0;j<5;j++){
 		       //¼Ðµùmarker(¯S®í³]­p¹Ï®×)¨ì¦a¹Ï
-		      showMarker(filterR[j]);
-			  
-               }
-		         
+		      showMarker(filterR[j]);	  
+                  }
+	        }else{
+                 for(var j=0;j<filterR.length;j++){
+		       //¼Ðµùmarker(¯S®í³]­p¹Ï®×)¨ì¦a¹Ï
+		      showMarker(filterR[j]);	  
+                  }
+                }      
 		   
 		 }
 		 
@@ -313,7 +340,7 @@ function addMarker(location) {
     });
   }
   function showMarker(places) {
-   
+   console.log(places);
     var marker = new google.maps.Marker({
       map: map,
       position: places.place.geometry.location,
@@ -349,7 +376,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
     <select id="mode" onchange="findRadius()">
       <option value="DRIVING" selected="selected">é–‹è»Š</option>
       <option value="WALKING">èµ°è·¯</option>
-      <option value="TRANSIT">å…¬è»Š</option>
     </select>
     </div>
   </body>
