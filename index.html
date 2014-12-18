@@ -54,6 +54,7 @@ var Filterbreak=0;
 var infowindow;
 var service ;
 var markers=[];
+var newloc=[];
 var filterR=[];
 var searchBox ;
 var locations;
@@ -120,7 +121,10 @@ function setAllMap(map) {
   if(map==null){
     for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(null); //¥ý²MªÅ©Ò¦³¤w¼Ðªºmarker
-}
+    }
+    for (var j = 0; j < newloc.length; j++) {
+    newloc[j].setMap(null); //¥ý²MªÅ©Ò¦³¤w¼Ðªºmarker
+    }
   }else{
  markers[markers.length-1].setMap(map);//¼Ð³Ì·sªºmarker
  document.getElementById('changebutton').innerHTML="<button type='button' onclick='findRadius()' >è¼¸å…¥</button>";
@@ -144,6 +148,8 @@ function showRoute(end) { //show route details on board
 }
 function findRadius(){
 
+setAllMap(null);
+setAllMap(map);
 filterR=[];
 mode=document.getElementById('mode').value;
 second=(document.getElementById('mytime').value)*60;
@@ -346,8 +352,7 @@ function addMarker(location) {
       position: places.place.geometry.location,
 	  icon:'map.png'
     });
-
-
+      newloc.push(marker);
       google.maps.event.addListener(marker, 'click', function() {
 
         infowindow.setContent('<b><a href="' + places.website +'">' + places.name + "</a></b></br>you have to spend: "+ places.time + "</br>"+places.address +"<br />" + places.rating + "<br />" + places.phone);
