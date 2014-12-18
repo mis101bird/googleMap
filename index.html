@@ -62,6 +62,7 @@ var mode;
 var second;
 var directionsDisplay;
 var directionsService = new google.maps.DirectionsService();
+var checkboxZoom;
 
 function initialize() {
   directionsDisplay = new google.maps.DirectionsRenderer();
@@ -102,11 +103,24 @@ function initialize() {
     locations=places[0].geometry.location;
     setAllMap(null);
     setAllMap(map);
-    
+    checkboxZoom=true;
+
     bounds.extend(places[0].geometry.location); //³]©w½d³ò
     map.fitBounds(bounds);//Âà¨ì·í¤U½d³ò
 });
 
+google.maps.event.addListener(map, 'zoom_changed', function() {
+    zoomChangeBoundsListener = 
+        google.maps.event.addListener(map, 'bounds_changed', function(event) {
+            if (this.getZoom() > 13 &&checkboxZoom==true) {
+                // Change max/min zoom here
+                checkboxZoom=false;
+                this.setZoom(13);
+
+            }
+        google.maps.event.removeListener(zoomChangeBoundsListener);
+    });
+});
   google.maps.event.addListener(map, 'click', function(event) {
     
 	var myLatLng = event.latLng;
@@ -159,16 +173,12 @@ if(mode=="DRIVING"){
     distance=Math.round(second*12.5);
 }else if(mode=="WALKING"){
     distance=Math.round(second*0.5);
-}else if(mode=="BICYCLING"){
-    distance=Math.round(second*5.55);
-}else{
-    distance=Math.round(second*3.815);
 }
     var request = {
       location: locations, //³]©w·j´M¤¤¤ß
       radius: distance ,     //·j´M¥b®|(m¬°³æ¦ì~³Ì¦h50,000 ¤½¤Ø)
 	  
-      types: ['casino','amusement_park','aquarium','art_gallery','hindu_temple','mosque','museum','zoo','university','cafe']    //·j´MÃþ«¬
+      types: ['casino','amusement_park','aquarium','art_gallery','hindu_temple','mosque','museum','zoo','university','rv_park','church']    //·j´MÃþ«¬
     };
     service.search(request, callback);
 	function callback(results, status) {
@@ -376,7 +386,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
     <div id="directions-panel"></div>
 	<div id="map-canvas"></div>
     <div class="choosebox">
-    <input id="mytime" type="text" placeholder="åœ¨é™„è¿‘åœç•™?åˆ†é˜">
+    <input id="mytime" type="text" placeholder="å¤§æ–¼40åˆ†çš„åœç•™æ™‚é–“">
     <span id="changebutton"><button type="button" onclick="" disabled >è¼¸å…¥</button></span>
     <select id="mode" onchange="findRadius()">
       <option value="DRIVING" selected="selected">é–‹è»Š</option>
