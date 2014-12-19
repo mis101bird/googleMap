@@ -243,24 +243,29 @@ if(mode=="DRIVING"){
 	console.log(trans);
 	var haveT=second/60;
     var pivotIndex=Math.round(((trans.length)/2)-1);
-    console.log(pivotIndex);
-    console.log((trans[pivotIndex].rows.duration.value)/60);
+    var afterpivotIndex=trans.length-1;
+    var beforepivotIndex=0;
     var nowtime=(trans[pivotIndex].rows.duration.value)/60;
     var finish=false;
     while(!finish){
+       console.log(pivotIndex);
        if(pivotIndex==0 || pivotIndex==(trans.length-1)){
         break;
        }
        var pretime=trans[pivotIndex-1].rows.duration.value/60;
        var aftime=trans[pivotIndex+1].rows.duration.value/60;
-       console.log("pretime:"+pretime+" aftime:"+aftime+" nowtime: "+nowtime);
+
        if(absDis(nowtime , haveT, 40)>absDis(pretime , haveT, 40) ){
-          nowtime=pretime;
-          pivotIndex=pivotIndex-1;
+
+          afterpivotIndex=pivotIndex;
+          pivotIndex=Math.round((pivotIndex-beforepivotIndex)/2+beforepivotIndex);
+          nowtime=trans[pivotIndex].rows.duration.value/60;
       
        }else if(absDis(nowtime , haveT, 40)>absDis(aftime , haveT, 40)){ //留40分~只有 haveT 分鐘
-          nowtime=aftime;
-          pivotIndex=pivotIndex+1;
+          
+          beforepivotIndex=pivotIndex;
+          pivotIndex=Math.round((afterpivotIndex-pivotIndex)/2+pivotIndex);
+          nowtime=trans[pivotIndex].rows.duration.value/60;
 
        }else
        {finish=true;}
@@ -335,7 +340,13 @@ function addMarker(location) {
 
 	   if(Filterbreak==pivot+1){
 	     Filterbreak=0;
-	     filterR.sort(function(a, b){ return b.place.rating-a.place.rating; });
+	     filterR.sort(function(a, b){
+                                         if(b.place.hasOwnProperty("rating")){
+                                          return 1;
+                                         }
+                                         return b.place.rating-a.place.rating; 
+                                        });
+           console.log(filterR);
 		 if(filterR.length>4){
 		 for(var j=0;j<5;j++){
 		       //標註marker(特殊設計圖案)到地圖
